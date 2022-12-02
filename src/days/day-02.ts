@@ -3,6 +3,7 @@ import {processInput} from '../utils/io-utils'
 type Move = 'rock' | 'paper' | 'scissors'
 type EnemyKey = 'A' | 'B' | 'C'
 type HeroKey = 'X' | 'Y' | 'Z'
+type DesiredOutcomeKey = HeroKey
 type Outcome = 'win' | 'draw' | 'loss'
 
 type MoveDetails = {
@@ -45,23 +46,46 @@ const MOVE_DETAILS: Record<Move, MoveDetails> = {
     },
 } as const
 
-const BONUS_POINTS = {
-    loss: 0,
-    draw: 3,
-    win: 6,
+type BonusPointsDetails = {
+    points: number
+    outcomeKey: DesiredOutcomeKey
 }
 
-const computeScore = (heroKey: HeroKey, enemyKey: EnemyKey): number => {
+const BONUS_POINTS: Record<Outcome, BonusPointsDetails> = {
+    loss: {
+        points: 0,
+        outcomeKey: 'X',
+    },
+    draw: {
+        points: 3,
+        outcomeKey: 'Y',
+    },
+    win: {
+        points: 6,
+        outcomeKey: 'Z',
+    },
+}
+
+const computeScorePart1 = (heroKey: HeroKey, enemyKey: EnemyKey): number => {
     const moveDetails = Object.values(MOVE_DETAILS).find(details => details.heroKey === heroKey)
     const enemyMove = Object.entries(MOVE_DETAILS).find(([_key, details]) => details.enemyKey === enemyKey)[0] as Move
-    return moveDetails.points + BONUS_POINTS[moveDetails.outcomes[enemyMove]]
+    return moveDetails.points + BONUS_POINTS[moveDetails.outcomes[enemyMove]].points
+}
+
+const computeScorePart2 = (enemyKey: EnemyKey, desiredOutcomeKey: DesiredOutcomeKey): number => {
+    const desiredOutcome = Object.entries(BONUS_POINTS).find(([_key, details]) => details.outcomeKey === desiredOutcomeKey)[0] as Outcome
+    const enemyMove = Object.entries(MOVE_DETAILS).find(([_key, details]) => details.enemyKey === enemyKey)[0] as Move
+    const pointsForCorrectMove = Object.values(MOVE_DETAILS).find(details => details.outcomes[enemyMove] === desiredOutcome).points
+    return pointsForCorrectMove + BONUS_POINTS[desiredOutcome].points
 }
 
 export const runDay2 = async () => {
-    let totalScore = 0
+    let totalScorePart1 = 0
+    let totalScorePart2 = 0
     const handleLine = line => {
         const [enemyKey, heroKey]: [EnemyKey, HeroKey] = line.split(' ')
-        totalScore += computeScore(heroKey, enemyKey)
+        totalScorePart1 += computeScorePart1(heroKey, enemyKey)
+        totalScorePart2 += computeScorePart2(enemyKey, heroKey)
     }
 
     await processInput({
@@ -70,7 +94,7 @@ export const runDay2 = async () => {
     })
 
     console.log({
-        part1: totalScore,
-        // part2: sumArray(someArray),
+        part1: totalScorePart1,
+        part2: totalScorePart2,
     })
 }
