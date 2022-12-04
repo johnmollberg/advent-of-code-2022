@@ -44,7 +44,7 @@ const MOVE_DETAILS: Record<Move, MoveDetails> = {
             rock: 'loss',
         },
     },
-} as const
+}
 
 type BonusPointsDetails = {
     points: number
