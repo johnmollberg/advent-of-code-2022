@@ -10,19 +10,33 @@ const computePriority = (item: string) => {
     return charCode - 96
 }
 
+const getCommonItemBetweenCompartments = (compartments: string[]): string => {
+    return compartments[0].split('').find(item => compartments.slice(1).every(compartment => compartment.includes(item)))
+}
+
 export const runDay3 = async () => {
     let someArray = initializeArray({
         length: 3,
         defaultValue: 0,
     })
 
-    let sum = 0
+    let part1Sum = 0
+    let part2Sum = 0
 
+    let elfGroup = []
     const handleLine = (line: string) => {
         const firstCompartment = line.slice(0, line.length / 2)
         const secondCompartment = line.slice(line.length / 2)
-        const commonItem = firstCompartment.split('').find(item => secondCompartment.includes(item))
-        sum += computePriority(commonItem)
+        part1Sum += computePriority(getCommonItemBetweenCompartments([
+            firstCompartment,
+            secondCompartment,
+        ]))
+
+        elfGroup.push(line)
+        if (elfGroup.length === 3) {
+            part2Sum += computePriority(getCommonItemBetweenCompartments(elfGroup))
+            elfGroup = []
+        }
 
     }
 
@@ -32,7 +46,7 @@ export const runDay3 = async () => {
     })
 
     console.log({
-        part1: sum,
-        part2: sumArray(someArray),
+        part1: part1Sum,
+        part2: part2Sum,
     })
 }
