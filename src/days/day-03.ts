@@ -1,7 +1,7 @@
 import {processInput} from '../utils/io-utils'
 import {initializeArray, sumArray} from '../utils/array-utils'
 
-const computePriority = (item: string) => {
+const computePriority = (item: string): number => {
     const charCode = item.charCodeAt(0)
     const isUppercase = item < 'a'
     if (isUppercase) {
@@ -15,11 +15,6 @@ const getCommonItemBetweenCompartments = (compartments: string[]): string => {
 }
 
 export const runDay3 = async () => {
-    let someArray = initializeArray({
-        length: 3,
-        defaultValue: 0,
-    })
-
     let part1Sum = 0
     let part2Sum = 0
 
