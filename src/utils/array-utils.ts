@@ -38,4 +38,4 @@ export const removeFirstItemFromArrayByPredicate = <T>(
     return copy
 }
 
-export const transpose2dArray = <T>(matrix: T[][]): T[][] => matrix[0].map((col, i) => matrix.map(row => row[i]))
+export const transpose2dMatrix = <T>(matrix: T[][]): T[][] => matrix[0].map((col, i) => matrix.map(row => row[i]))

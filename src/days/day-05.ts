@@ -1,34 +1,27 @@
 import {processInput} from '../utils/io-utils'
-import {transpose2dArray} from '../utils/array-utils'
+import {transpose2dMatrix} from '../utils/array-utils'
 
 const moveRegex = /move (\d+) from (\d+) to (\d+)/
 
 export const runDay5 = async () => {
     let initialStateStrings: string[] = []
-    let processedBoardState: string[][] = []
+    let boardState: string[][] = []
 
     const resetState = () => {
         initialStateStrings = []
-        processedBoardState = []
+        boardState = []
     }
 
-    const handleLine = (line: string, reverseMovedItems: boolean) => {
-        if (!line) {
-            return
-        }
-        if (line.startsWith(' 1')) {
-            processedBoardState = transpose2dArray(initialStateStrings
-                .reverse()
-                .map(line =>
-                    line.match(/.{1,4}/g)
-                        .map(crate => crate.charAt(1).trim() || undefined)
-                )).map(container => container.filter(Boolean))
-            return
-        }
-        if (!processedBoardState.length) {
-            initialStateStrings.push(line)
-            return
-        }
+    const loadInitialState = () => {
+        boardState = transpose2dMatrix(initialStateStrings
+            .reverse()
+            .map(line =>
+                line.match(/.{1,4}/g)
+                    .map(crate => crate.charAt(1).trim() || undefined)
+            )).map(stack => stack.filter(Boolean))
+    }
+
+    const processMove = (line: string, reverseMovedItems: boolean) => {
         const regexResult = line.match(moveRegex)
         if (!regexResult) {
             return
@@ -42,19 +35,31 @@ export const runDay5 = async () => {
         const quantity = parseInt(quantityStr)
         const from = parseInt(fromStr)
         const to = parseInt(toStr)
-        const fromContainer = processedBoardState[from - 1]
-        const toContainer = processedBoardState[to - 1]
-        const itemsToMove = fromContainer
-            .splice(fromContainer.length - quantity, quantity)
+        const fromStack = boardState[from - 1]
+        const toStack = boardState[to - 1]
+        const itemsToMove = fromStack.splice(fromStack.length - quantity, quantity)
         if (reverseMovedItems) {
             itemsToMove.reverse()
         }
-        toContainer.push(
-            ...itemsToMove
-        )
+        toStack.push(...itemsToMove)
     }
 
-    const getAnswer = () => processedBoardState.map(container => container[container.length - 1]).join('')
+    const handleLine = (line: string, reverseMovedItems: boolean) => {
+        if (!line) {
+            return
+        }
+        if (line.startsWith(' 1')) {
+            loadInitialState()
+            return
+        }
+        if (!boardState.length) {
+            initialStateStrings.push(line)
+            return
+        }
+        processMove(line, reverseMovedItems)
+    }
+
+    const getAnswer = () => boardState.map(container => container[container.length - 1]).join('')
 
     await processInput({
         fileLocation: 'input.txt',
