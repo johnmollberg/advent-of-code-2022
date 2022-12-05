@@ -37,3 +37,5 @@ export const removeFirstItemFromArrayByPredicate = <T>(
     copy.splice(arr.findIndex(predicate), 1)
     return copy
 }
+
+export const transpose2dArray = <T>(matrix: T[][]): T[][] => matrix[0].map((col, i) => matrix.map(row => row[i]))
