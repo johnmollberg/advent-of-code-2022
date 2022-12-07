@@ -52,53 +52,56 @@ export const runDay7 = async () => {
 
     let currentDir: Directory = rootDir
 
-    commands.forEach(command => {
-        if (command.command === 'ls') {
-            command.output.forEach(command => {
-                const [dirOrMem, name] = command.split(' ')
-                if (dirOrMem === 'dir') {
-                    if (!currentDir.subdirectories.some(subdirectory => subdirectory.name === name)) {
-                        currentDir.subdirectories.push({
-                            name,
-                            subdirectories: [],
-                            files: [],
-                            parentDir: currentDir,
-                        })
-                    }
-                } else { // file
-                    if (!currentDir.files.some(file => file.name === name)) {
-                        currentDir.files.push({
-                            name,
-                            memory: parseInt(dirOrMem),
-                        })
-                    }
-                }
+    const addDirIfNotExists = (name: string) => {
+        if (!currentDir.subdirectories.some(subdirectory => subdirectory.name === name)) {
+            currentDir.subdirectories.push({
+                name,
+                subdirectories: [],
+                files: [],
+                parentDir: currentDir,
             })
-        } else { // cd
-            const newDir = command.params
-            if (newDir === '..') {
-                currentDir = currentDir.parentDir
-            } else {
-                if (!currentDir.subdirectories.some(subdirectory => subdirectory.name === newDir)) {
-                    currentDir.subdirectories.push({
-                        name: newDir,
-                        subdirectories: [],
-                        files: [],
-                        parentDir: currentDir,
+        }
+    }
+
+    const processLs = (command: Command) => {
+        command.output.forEach(command => {
+            const [dirOrMem, name] = command.split(' ')
+            if (dirOrMem === 'dir') {
+                addDirIfNotExists(name)
+            } else { // file
+                if (!currentDir.files.some(file => file.name === name)) {
+                    currentDir.files.push({
+                        name,
+                        memory: parseInt(dirOrMem),
                     })
                 }
-                currentDir = currentDir.subdirectories.find(subdirectory => subdirectory.name === newDir)
             }
+        })
+    }
+
+    const processCd = (command: Command) => {
+        const target = command.params
+        if (target === '..') {
+            currentDir = currentDir.parentDir
+        } else {
+            addDirIfNotExists(target)
+            currentDir = currentDir.subdirectories.find(subdirectory => subdirectory.name === target)
+        }
+    }
+
+    commands.forEach(command => {
+        if (command.command === 'ls') {
+            processLs(command)
+        } else { // cd
+            processCd(command)
         }
     })
-
-    printDirs(rootDir, '')
 
     const allDirSizes = getAllDirSizes(rootDir)
 
     const part1 = sumArray(allDirSizes.filter(size => size <= 100000))
 
-    const rootDirSize = getDirSize(rootDir)
+    const rootDirSize = Math.max(...allDirSizes)
 
     const memoryGoal = -1 * (totalSpace - desiredUnusedSpace - rootDirSize)
 
@@ -117,10 +120,11 @@ const getAllDirSizes = (rootDir: Directory): number[] => {
     ]
 }
 
-const printDirs = (rootDir: Directory, prefix: string) => {
+const printDirs = (rootDir: Directory, prefix: string = '') => {
     console.log(`${prefix}- ${rootDir.name} (dir, size=${getDirSize(rootDir)})`)
-    rootDir.subdirectories.forEach(dir => printDirs(dir, `${prefix}  `))
-    rootDir.files.forEach(file => console.log(`${prefix}  - ${file.name} (file, size=${file.memory})`))
+    const childPrefix = `${prefix}  `
+    rootDir.subdirectories.forEach(dir => printDirs(dir, childPrefix))
+    rootDir.files.forEach(file => console.log(`${childPrefix}- ${file.name} (file, size=${file.memory})`))
 }
 
 const getDirSize = (rootDir: Directory): number => {
