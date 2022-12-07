@@ -1,5 +1,8 @@
 import {getAllInputLines} from '../utils/io-utils'
-import {sumArray} from '../utils/array-utils'
+import {sumArray} from "../utils/array-utils";
+
+const totalSpace = 70000000
+const desiredUnusedSpace = 30000000
 
 type Command = {
     command: 'cd' | 'ls'
@@ -34,14 +37,13 @@ export const runDay7 = async () => {
                 params,
                 output: [],
             })
-        } else {
+        } else if (inputLine.length) {
             commands[commands.length - 1].output.push(inputLine)
         }
     }
 
     // delete top level directory and initialize manually
     commands.splice(0, 1)
-
     const rootDir: Directory = {
         name: '/',
         files: [],
@@ -92,16 +94,20 @@ export const runDay7 = async () => {
 
     printDirs(rootDir, '')
 
-    console.log(`all dirs: ${
-        getAllDirSizes(rootDir)
-            .filter(size => size <= 100000)
-            .reduce((acc, curr) => acc + curr, 0)
-    }`)
+    const allDirSizes = getAllDirSizes(rootDir)
 
-    // console.log({
-    //     part1: Math.max(...someArray),
-    //     part2: sumArray(someArray),
-    // })
+    const part1 = sumArray(allDirSizes.filter(size => size <= 100000))
+
+    const rootDirSize = getDirSize(rootDir)
+
+    const memoryGoal = -1 * (totalSpace - desiredUnusedSpace - rootDirSize)
+
+    const part2 = Math.min(...allDirSizes.filter(x => x > memoryGoal))
+
+    console.log({
+        part1,
+        part2,
+    })
 }
 
 const getAllDirSizes = (rootDir: Directory): number[] => {
@@ -118,7 +124,7 @@ const printDirs = (rootDir: Directory, prefix: string) => {
 }
 
 const getDirSize = (rootDir: Directory): number => {
-    const filesSize = rootDir.files.reduce((acc, curr) => acc + curr.memory, 0)
-    const subdirectoriesSize = rootDir.subdirectories.reduce((acc, curr) => acc + getDirSize(curr), 0)
+    const filesSize = sumArray(rootDir.files.map(file => file.memory))
+    const subdirectoriesSize = sumArray(rootDir.subdirectories.map(getDirSize))
     return filesSize + subdirectoriesSize
 }
