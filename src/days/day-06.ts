@@ -1,5 +1,5 @@
-import {getAllInputLines, processInput} from '../utils/io-utils'
-import {doesArrayContainDuplicates, initializeArray, sumArray} from '../utils/array-utils'
+import {getAllInputLines} from '../utils/io-utils'
+import {doesArrayContainDuplicates} from '../utils/array-utils'
 
 export const runDay6 = async () => {
     const [inputString] = getAllInputLines({
