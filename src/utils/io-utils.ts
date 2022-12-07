@@ -22,3 +22,14 @@ export const processInput = async (params: ProcessInputParams): Promise<void> =>
     })
     await events.once(readlineInterface, 'close')
 }
+
+type GetAllInputLinesParams = {
+    fileLocation: string
+}
+
+export const getAllInputLines = (params: GetAllInputLinesParams): string[] => {
+    const {
+        fileLocation,
+    } = params
+    return fs.readFileSync(fileLocation).toString().split('\n')
+}

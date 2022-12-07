@@ -1,21 +1,24 @@
-import {processInput} from '../utils/io-utils'
-import {initializeArray, sumArray} from '../utils/array-utils'
+import {getAllInputLines, processInput} from '../utils/io-utils'
+import {doesArrayContainDuplicates, initializeArray, sumArray} from '../utils/array-utils'
 
 export const runDay6 = async () => {
-    let someArray = initializeArray({
-        length: 3,
-        defaultValue: 0,
+    const [inputString] = getAllInputLines({
+        fileLocation: 'input.txt',
     })
 
-    await processInput({
-        fileLocation: 'input.txt',
-        handleLine: (line) => {
-            console.log(`line: ${line}`)
+    const computeAnswer = (numberOfUniqueCharactersNecessary: number): number => {
+        const input = inputString.split('')
+        const originalLength = input.length
+        const currentCharactersOfInterest = input.splice(0, numberOfUniqueCharactersNecessary)
+        while (input.length && doesArrayContainDuplicates(currentCharactersOfInterest)) {
+            currentCharactersOfInterest.splice(0, 1)
+            currentCharactersOfInterest.push(...input.splice(0, 1))
         }
-    })
+        return originalLength - input.length
+    }
 
     console.log({
-        part1: Math.max(...someArray),
-        part2: sumArray(someArray),
+        part1: computeAnswer(4),
+        part2: computeAnswer(14),
     })
 }

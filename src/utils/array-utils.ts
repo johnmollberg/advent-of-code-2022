@@ -39,3 +39,7 @@ export const removeFirstItemFromArrayByPredicate = <T>(
 }
 
 export const transpose2dMatrix = <T>(matrix: T[][]): T[][] => matrix[0].map((col, i) => matrix.map(row => row[i]))
+
+export const doesArrayContainDuplicates = <T extends Primitive>(
+    arr: T[],
+): boolean => arr.length !== new Set(arr).size
