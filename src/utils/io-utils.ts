@@ -31,5 +31,5 @@ export const getAllInputLines = (params: GetAllInputLinesParams): string[] => {
     const {
         fileLocation,
     } = params
-    return fs.readFileSync(fileLocation).toString().split('\n')
+    return fs.readFileSync(fileLocation).toString().split('\n').filter(Boolean)
 }
