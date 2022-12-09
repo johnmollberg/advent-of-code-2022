@@ -19,7 +19,7 @@ export const initializeArray: InitializeArray = (params) => {
     const arrayOfProperLength = Array.from(new Array(length))
     return defaultValue === undefined ?
         arrayOfProperLength.map((_value, index) => index) :
-        arrayOfProperLength.map(_value => defaultValue)
+        arrayOfProperLength.map(_value => cloneDeep(defaultValue))
 }
 
 export const sumArray = (arr: number[]): number => arr.reduce((a, b) => a + b, 0)

@@ -5,16 +5,17 @@ const isTargetTreeTallerThanAllTreesInSlice = (targetTreeHeight: number, otherTr
 
 const getIsTreeVisibleFromAnyEdge = (forest: number[][], rowIndex: number, columnIndex: number): boolean => {
     const row = forest[rowIndex]
+    const column = forest.map(x => x[columnIndex])
     const treeHeight = row[columnIndex]
     return isTargetTreeTallerThanAllTreesInSlice(treeHeight, row.slice(0, columnIndex)) || // left
         isTargetTreeTallerThanAllTreesInSlice(treeHeight, row.slice(columnIndex + 1, row.length)) || // right
-        isTargetTreeTallerThanAllTreesInSlice(treeHeight, forest.map(x => x[columnIndex]).slice(0, rowIndex)) || // top
-        isTargetTreeTallerThanAllTreesInSlice(treeHeight, forest.map(x => x[columnIndex]).slice(rowIndex + 1, forest.length)) // bottom
+        isTargetTreeTallerThanAllTreesInSlice(treeHeight, column.slice(0, rowIndex)) || // top
+        isTargetTreeTallerThanAllTreesInSlice(treeHeight, column.slice(rowIndex + 1, forest.length)) // bottom
 }
 
-const getNumberOfVisibleTrees = (targetTreeHeight: number, otherTreeHeights: number[]): number => {
-    return otherTreeHeights.findIndex(height => height >= targetTreeHeight) + 1 || otherTreeHeights.length
-}
+const getNumberOfVisibleTrees = (targetTreeHeight: number, otherTreeHeights: number[]): number =>
+    otherTreeHeights.findIndex(height => height >= targetTreeHeight) + 1 ||
+    otherTreeHeights.length
 
 const computeScenicScore = (forest: number[][], rowIndex: number, columnIndex: number): number => {
     const row = forest[rowIndex]
