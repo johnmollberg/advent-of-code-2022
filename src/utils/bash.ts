@@ -17,7 +17,7 @@ type Directory = {
 type ComputerState = {
     rootDirectory: Directory
     currentDirectory: Directory
-    registers: Record<'X', number>
+    registers: Record<'x', number>
     currentCycle: number
 }
 
@@ -27,7 +27,7 @@ export type Command = {
     output: string[]
 }
 
-export const processBashInput = (fileLocation: string, requireDollarSignForParams: boolean = true): Command[] => {
+export const processBashInput = (fileLocation: string, considerAllLinesCommands: boolean = false): Command[] => {
     const inputLines = getAllInputLines({
         fileLocation,
     })
@@ -35,21 +35,20 @@ export const processBashInput = (fileLocation: string, requireDollarSignForParam
     let commands: Command[] = []
 
     for (const inputLine of inputLines) {
-        if (!requireDollarSignForParams) {
-            const [command, ...params] = inputLine.split(' ')
+        if (!inputLine.length) {
+            continue
+        }
+        if (
+            inputLine.startsWith('$') ||
+            considerAllLinesCommands
+        ) {
+            const [command, ...params] = inputLine.replace('$', '').split(' ').filter(Boolean)
             commands.push({
                 command: command as Command['command'],
                 params,
                 output: [],
             })
-        } else if (inputLine.startsWith('$')) {
-            const [_, command, ...params] = inputLine.split(' ')
-            commands.push({
-                command: command as Command['command'],
-                params,
-                output: [],
-            })
-        } else if (inputLine.length) {
+        } else {
             commands[commands.length - 1].output.push(inputLine)
         }
     }
@@ -107,7 +106,7 @@ export const getInitialComputerState = (): ComputerState => {
         rootDirectory,
         currentDirectory: rootDirectory,
         registers: {
-            X: 1,
+            x: 1,
         },
         currentCycle: 0,
     }
@@ -118,7 +117,7 @@ const processNoop = (computerState: ComputerState) => {
 }
 
 const processAddX = (command: Command, computerState: ComputerState) => {
-    computerState.registers.X += parseInt(command.params[0])
+    computerState.registers.x += parseInt(command.params[0])
 }
 
 type HandleCyclesOptions = Partial<{

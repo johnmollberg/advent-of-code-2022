@@ -1,13 +1,11 @@
 import {processBashInput, runCommands} from "../utils/bash";
 import {initializeArray, sumArray} from "../utils/array-utils";
 
-const cyclesOfInterest = [20, 60, 100, 140, 180, 220]
-
 const crtWidth = 40
 const crtHeight = 6
 
 export const runDay10 = async () => {
-    const commands = processBashInput('input.txt', false)
+    const commands = processBashInput('input.txt', true)
 
     const xValues: number[] = []
 
@@ -23,19 +21,18 @@ export const runDay10 = async () => {
         onCycle: (state) => {
             const {
                 currentCycle,
-                registers: { X },
+                registers: { x },
             } = state
 
             // part 1
-            if (currentCycle === cyclesOfInterest[0] - 1) {
-                xValues.push(X * cyclesOfInterest[0])
-                cyclesOfInterest.splice(0, 1)
+            if ((currentCycle + 20) % 40 === 0) {
+                xValues.push(x * currentCycle)
             }
 
             // part 2
             const row = Math.floor(currentCycle / crtWidth)
             const column = currentCycle % crtWidth
-            if ([X - 1, X, X + 1].includes(column)) {
+            if ([x - 1, x, x + 1].includes(column)) {
                 crt[row][column] = '▓'
             }
         }
