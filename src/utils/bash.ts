@@ -114,26 +114,51 @@ export const getInitialComputerState = (): ComputerState => {
 }
 
 const processNoop = (computerState: ComputerState) => {
-    computerState.currentCycle += 1
+
 }
 
 const processAddX = (command: Command, computerState: ComputerState) => {
     computerState.registers.X += parseInt(command.params[0])
-    computerState.currentCycle += 2
+}
+
+type HandleCyclesOptions = Partial<{
+    onCycle: (state: ComputerState) => void
+}>
+
+const cycleCountMap: Record<Command['command'], number> = {
+    addx: 2,
+    noop: 1,
+    cd: 0,
+    ls: 0,
+}
+
+const handlePreCalculationCycles = (command: Command, computerState: ComputerState, options: HandleCyclesOptions = {}) => {
+    const {
+        onCycle = () => {},
+    } = options
+    const numberOfCycles = cycleCountMap[command.command]
+    for (let i = 0; i < numberOfCycles - 1; i++) {
+        computerState.currentCycle++
+        onCycle(computerState)
+    }
 }
 
 type RunCommandsOptions = Partial<{
     initialState: ComputerState
     onCompleteCommand: (state: ComputerState) => void
+    onCycle: HandleCyclesOptions['onCycle']
 }>
 
-export const runCommands = (commands: Command[], options?: RunCommandsOptions): ComputerState => {
+export const runCommands = (commands: Command[], options: RunCommandsOptions = {}): ComputerState => {
     const {
         onCompleteCommand = () => {},
         initialState = getInitialComputerState(),
-    } = options || {}
+        onCycle = () => {}
+    } = options
     let computerState = cloneDeep(initialState)
+    onCycle(computerState)
     commands.forEach(command => {
+        handlePreCalculationCycles(command, computerState, options)
         switch (command.command) {
             case 'ls': {
                 processLs(command, computerState)
@@ -155,7 +180,9 @@ export const runCommands = (commands: Command[], options?: RunCommandsOptions): 
                 throw new Error(`Command ${command.command} not implemented`)
             }
         }
+        computerState.currentCycle++
         onCompleteCommand(computerState)
+        onCycle(computerState)
     })
 
     return computerState
