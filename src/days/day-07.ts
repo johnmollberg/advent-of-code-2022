@@ -10,13 +10,9 @@ export const runDay7 = async () => {
     // delete top level directory and initialize manually
     commands.splice(0, 1)
 
-    const rootDir = runCommands(commands, {
-        name: '/',
-        files: [],
-        subdirectories: [],
-    })
+    const computerState = runCommands(commands)
 
-    const allDirSizes = getAllDirSizes(rootDir)
+    const allDirSizes = getAllDirSizes(computerState.rootDirectory)
 
     const part1 = sumArray(allDirSizes.filter(size => size <= 100000))
 

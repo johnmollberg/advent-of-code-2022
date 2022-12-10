@@ -1,5 +1,6 @@
 import {getAllInputLines} from "./io-utils";
 import {sumArray} from "./array-utils";
+import {cloneDeep} from "lodash";
 
 type AocFile = {
     name: string
@@ -13,13 +14,20 @@ type Directory = {
     parentDir?: Directory
 }
 
+type ComputerState = {
+    rootDirectory: Directory
+    currentDirectory: Directory
+    registers: Record<'X', number>
+    currentCycle: number
+}
+
 export type Command = {
-    command: 'cd' | 'ls'
-    params?: string
+    command: 'cd' | 'ls' | 'noop' | 'addx'
+    params: string[]
     output: string[]
 }
 
-export const processBashInput = (fileLocation: string): Command[] => {
+export const processBashInput = (fileLocation: string, requireDollarSignForParams: boolean = true): Command[] => {
     const inputLines = getAllInputLines({
         fileLocation,
     })
@@ -27,8 +35,15 @@ export const processBashInput = (fileLocation: string): Command[] => {
     let commands: Command[] = []
 
     for (const inputLine of inputLines) {
-        if (inputLine.startsWith('$')) {
-            const [_, command, params] = inputLine.split(' ')
+        if (!requireDollarSignForParams) {
+            const [command, ...params] = inputLine.split(' ')
+            commands.push({
+                command: command as Command['command'],
+                params,
+                output: [],
+            })
+        } else if (inputLine.startsWith('$')) {
+            const [_, command, ...params] = inputLine.split(' ')
             commands.push({
                 command: command as Command['command'],
                 params,
@@ -54,14 +69,14 @@ const addDirIfNotExists = (name: string, currentDir: Directory) => {
     }
 }
 
-export const processLs = (command: Command, currentDir: Directory) => {
+export const processLs = (command: Command, computerState: ComputerState) => {
     command.output.forEach(command => {
         const [dirOrMem, name] = command.split(' ')
         if (dirOrMem === 'dir') {
-            addDirIfNotExists(name, currentDir)
+            addDirIfNotExists(name, computerState.currentDirectory)
         } else { // file
-            if (!currentDir.files.some(file => file.name === name)) {
-                currentDir.files.push({
+            if (!computerState.currentDirectory.files.some(file => file.name === name)) {
+                computerState.currentDirectory.files.push({
                     name,
                     memory: parseInt(dirOrMem),
                 })
@@ -70,35 +85,80 @@ export const processLs = (command: Command, currentDir: Directory) => {
     })
 }
 
-export const getDirAfterCd = (command: Command, currentDir: Directory): Directory => {
-    const target = command.params
+export const processCd = (command: Command, computerState: ComputerState) => {
+    const target = command.params[0]
     if (target === '..') {
-        return currentDir.parentDir
+        computerState.currentDirectory = computerState.currentDirectory.parentDir
+    } else if (target === '/') {
+        computerState.currentDirectory = computerState.rootDirectory
     } else {
-        addDirIfNotExists(target, currentDir)
-        return currentDir.subdirectories.find(subdirectory => subdirectory.name === target)
+        addDirIfNotExists(target, computerState.currentDirectory)
+        computerState.currentDirectory = computerState.currentDirectory.subdirectories.find(subdirectory => subdirectory.name === target)
     }
 }
 
-export const runCommands = (commands: Command[], initialState: Directory): Directory => {
-    let currentDir = initialState
+export const getInitialComputerState = (): ComputerState => {
+    const rootDirectory: Directory = {
+        name: '/',
+        files: [],
+        subdirectories: [],
+    }
+    return {
+        rootDirectory,
+        currentDirectory: rootDirectory,
+        registers: {
+            X: 1,
+        },
+        currentCycle: 0,
+    }
+}
+
+const processNoop = (computerState: ComputerState) => {
+    computerState.currentCycle += 1
+}
+
+const processAddX = (command: Command, computerState: ComputerState) => {
+    computerState.registers.X += parseInt(command.params[0])
+    computerState.currentCycle += 2
+}
+
+type RunCommandsOptions = Partial<{
+    initialState: ComputerState
+    onCompleteCommand: (state: ComputerState) => void
+}>
+
+export const runCommands = (commands: Command[], options?: RunCommandsOptions): ComputerState => {
+    const {
+        onCompleteCommand = () => {},
+        initialState = getInitialComputerState(),
+    } = options || {}
+    let computerState = cloneDeep(initialState)
     commands.forEach(command => {
         switch (command.command) {
             case 'ls': {
-                processLs(command, currentDir)
+                processLs(command, computerState)
                 break
             }
             case 'cd': {
-                currentDir = getDirAfterCd(command, currentDir)
+                processCd(command, computerState)
+                break
+            }
+            case 'noop': {
+                processNoop(computerState)
+                break
+            }
+            case 'addx': {
+                processAddX(command, computerState)
                 break
             }
             default: {
                 throw new Error(`Command ${command.command} not implemented`)
             }
         }
+        onCompleteCommand(computerState)
     })
 
-    return initialState
+    return computerState
 }
 
 export const getAllDirSizes = (rootDir: Directory): number[] => {
