@@ -1,14 +1,16 @@
 import {processBashInput, runCommands} from "../utils/bash";
 import {initializeArray, sumArray} from "../utils/array-utils";
 
+const cyclesOfInterest = [20, 60, 100, 140, 180, 220]
+
+const crtWidth = 40
+const crtHeight = 6
+
 export const runDay10 = async () => {
     const commands = processBashInput('input.txt', false)
 
-    let prevX = 1
-    const cyclesOfInterest = [20, 60, 100, 140, 180, 220]
     const xValues: number[] = []
-    const crtWidth = 40
-    const crtHeight = 6
+
     const crt = initializeArray({
         length: crtHeight,
         defaultValue: initializeArray({
@@ -16,40 +18,32 @@ export const runDay10 = async () => {
             defaultValue: ' ',
         }),
     })
+
     runCommands(commands, {
-        onCompleteCommand: state => {
+        onCycle: (state) => {
+            const {
+                currentCycle,
+                registers: { X },
+            } = state
+
             // part 1
-            if (state.currentCycle >= cyclesOfInterest[0]) {
-                xValues.push(prevX * cyclesOfInterest[0])
+            if (currentCycle === cyclesOfInterest[0] - 1) {
+                xValues.push(X * cyclesOfInterest[0])
                 cyclesOfInterest.splice(0, 1)
             }
 
-            prevX = state.registers.X
-        },
-        onCycle: (state) => {
             // part 2
-            const row = Math.floor(state.currentCycle / crtWidth)
-            const column = state.currentCycle % crtWidth
-            console.log({ row, column, prevX })
-            if ([prevX - 1, prevX, prevX + 1].includes(column)) {
-                crt[row][column] = '#'
+            const row = Math.floor(currentCycle / crtWidth)
+            const column = currentCycle % crtWidth
+            if ([X - 1, X, X + 1].includes(column)) {
+                crt[row][column] = '▓'
             }
         }
     })
     const part1 = sumArray(xValues)
-    /**
-     * ##..##..##..##..##..##..##..##..##..##..
-     * ###...###...###...###...###...###...###.
-     * ####....####....####....####....####....
-     * #####.....#####.....#####.....#####.....
-     * ######......######......######......####
-     * #######.......#######.......#######.....
-     */
-    crt.forEach(row => console.log(`${row.join('')}`))
+    console.log({ part1 })
 
-    console.log({
-        part1,
-        // part2,
-    })
+    console.log('part 2:')
+    crt.forEach(row => console.log(`${row.join('')}`))
 }
 

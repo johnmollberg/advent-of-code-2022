@@ -128,8 +128,8 @@ type HandleCyclesOptions = Partial<{
 const cycleCountMap: Record<Command['command'], number> = {
     addx: 2,
     noop: 1,
-    cd: 0,
-    ls: 0,
+    cd: 1,
+    ls: 1,
 }
 
 const handlePreCalculationCycles = (command: Command, computerState: ComputerState, options: HandleCyclesOptions = {}) => {
@@ -181,8 +181,8 @@ export const runCommands = (commands: Command[], options: RunCommandsOptions = {
             }
         }
         computerState.currentCycle++
-        onCompleteCommand(computerState)
         onCycle(computerState)
+        onCompleteCommand(computerState)
     })
 
     return computerState
