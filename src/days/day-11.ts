@@ -118,6 +118,7 @@ export const runDay11 = async () => {
     const part1 = getLevelOfMonkeyBusiness(monkeys)
 
     monkeys = initializeMonkeys()
+    // only the lcm because all the test divisors are prime
     const lcm = monkeys.map(m => m.testDivisor).reduce((acc, curr) => acc * curr, 1)
     playKeepAway(monkeys, 10000, 1, lcm)
     const part2 = getLevelOfMonkeyBusiness(monkeys)
