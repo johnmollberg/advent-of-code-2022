@@ -4,10 +4,29 @@ type Tile = {
     elevation: number
     stepsToTarget: number
     isStartingPoint: boolean
-    isTarget: boolean
     rowIndex: number
     colIndex: number
     reachableNeighbors: Tile[]
+}
+
+const getStepsToTarget = (startRowIndex: number, startColIndex: number, map: Tile[][]) => {
+    const startTile = map.flat().find(tile => startRowIndex === tile.rowIndex && startColIndex === tile.colIndex)
+
+    let hash = map.flat().map(tile => tile.stepsToTarget).join()
+    let prevHash = ''
+    while (hash !== prevHash) {
+        map.flat().forEach(tile => {
+            const neighborSteps = tile.reachableNeighbors
+                .map(neighbor => neighbor.stepsToTarget)
+                .filter(distance => distance < Number.MAX_SAFE_INTEGER)
+            if (neighborSteps.length) {
+                tile.stepsToTarget = Math.min(Math.min(...neighborSteps) + 1, tile.stepsToTarget)
+            }
+        })
+        prevHash = hash
+        hash = map.flat().map(tile => tile.stepsToTarget).join()
+    }
+    return startTile.stepsToTarget
 }
 
 export const runDay12 = async () => {
@@ -21,7 +40,6 @@ export const runDay12 = async () => {
                     elevation: 0,
                     stepsToTarget: Number.MAX_SAFE_INTEGER,
                     isStartingPoint: true,
-                    isTarget: false,
                     rowIndex,
                     colIndex,
                     isVisited: false,
@@ -34,7 +52,6 @@ export const runDay12 = async () => {
                     elevation: 25,
                     stepsToTarget: 0,
                     isStartingPoint: false,
-                    isTarget: true,
                     rowIndex,
                     colIndex,
                     isVisited: true,
@@ -46,7 +63,6 @@ export const runDay12 = async () => {
                 elevation: char.charCodeAt(0) - 97,
                 stepsToTarget: Number.MAX_SAFE_INTEGER,
                 isStartingPoint: false,
-                isTarget: false,
                 rowIndex,
                 colIndex,
                 isVisited: false,
@@ -70,20 +86,13 @@ export const runDay12 = async () => {
         .forEach(tile => tile.reachableNeighbors = getNeighboringTiles(tile))
 
     const startTile = map.flat().find(tile => tile.isStartingPoint)
+    const part1 = getStepsToTarget(startTile.rowIndex, startTile.colIndex, map)
 
-    while (startTile.stepsToTarget === Number.MAX_SAFE_INTEGER) {
-        map.flat().forEach(tile => {
-            const neighborSteps = tile.reachableNeighbors
-                .map(neighbor => neighbor.stepsToTarget)
-                .filter(distance => distance < Number.MAX_SAFE_INTEGER)
-            if (neighborSteps.length) {
-                tile.stepsToTarget = Math.min(...neighborSteps) + 1
-            }
-        })
-    }
+    const allZeroElevationTiles = map.flat().filter(tile => tile.elevation === 0)
+    let part2 = Math.min(...allZeroElevationTiles.map(tile => tile.stepsToTarget))
 
     console.log({
-        part1: startTile.stepsToTarget,
-        // part2: sumArray(someArray),
+        part1,
+        part2,
     })
 }
