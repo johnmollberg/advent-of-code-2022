@@ -1,5 +1,5 @@
 import {getAllInputLines} from '../utils/io-utils'
-import {removeItemFromArray, sumArray} from "../utils/array-utils";
+import {removeItemFromArray} from "../utils/array-utils";
 
 type Monkey = {
     items: number[]
