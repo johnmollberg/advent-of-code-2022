@@ -1,5 +1,5 @@
 import {getAllInputLines} from '../utils/io-utils'
-import {removeItemFromArray} from "../utils/array-utils";
+import {removeItemFromArray, sumArray} from "../utils/array-utils";
 
 type Monkey = {
     items: number[]
@@ -10,16 +10,14 @@ type Monkey = {
     inspectionCount: number
 }
 
-type OperatorSymbol = '+' | '-' | '*' | '/'
+type OperatorSymbol = '+' | '*'
 
 const operatorFunctions: Record<OperatorSymbol, (a: number, b: number) => number> = {
     '+': (a, b) => a + b,
-    '-': (a, b) => a - b,
     '*': (a, b) => a * b,
-    '/': (a, b) => a / b,
 }
 
-export const runDay11 = async () => {
+const initializeMonkeys = (): Monkey[] => {
     const inputLines = getAllInputLines({
         fileLocation: 'input.txt',
     })
@@ -87,13 +85,16 @@ export const runDay11 = async () => {
             }
         }
     }
+    return monkeys
+}
 
-    const numberOfRounds = 20
+const playKeepAway = (monkeys: Monkey[], numberOfRounds: number, divisor: number, modulo: number) => {
     for (let i = 0; i < numberOfRounds; i++) {
         for (const monkey of monkeys) {
             while (monkey.items.length) {
                 const [item] = monkey.items.splice(0, 1)
-                const newItem = Math.floor(monkey.operation(item) / 3)
+                const reducedItem = modulo ? item % modulo : item
+                const newItem = Math.floor(monkey.operation(reducedItem) / divisor)
                 const targetMonkey = newItem % monkey.testDivisor === 0 ?
                     monkey.ifTrueTargetMonkey :
                     monkey.ifFalseTargetMonkey
@@ -102,13 +103,27 @@ export const runDay11 = async () => {
             }
         }
     }
+}
 
+const getLevelOfMonkeyBusiness = (monkeys: Monkey[]) => {
     const inspectionCounts = monkeys.map(monkey => monkey.inspectionCount)
     const maxInspectionCount = Math.max(...inspectionCounts)
     const secondMaxInspectionCount = Math.max(...removeItemFromArray(inspectionCounts, maxInspectionCount))
-    const levelOfMonkeyBusiness = maxInspectionCount * secondMaxInspectionCount
+    return maxInspectionCount * secondMaxInspectionCount
+}
+
+export const runDay11 = async () => {
+    let monkeys = initializeMonkeys()
+    playKeepAway(monkeys, 20, 3, 0)
+    const part1 = getLevelOfMonkeyBusiness(monkeys)
+
+    monkeys = initializeMonkeys()
+    const lcm = monkeys.map(m => m.testDivisor).reduce((acc, curr) => acc * curr, 1)
+    playKeepAway(monkeys, 10000, 1, lcm)
+    const part2 = getLevelOfMonkeyBusiness(monkeys)
 
     console.log({
-        part1: levelOfMonkeyBusiness,
+        part1,
+        part2,
     })
 }
