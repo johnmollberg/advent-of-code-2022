@@ -25,11 +25,16 @@ export const processInput = async (params: ProcessInputParams): Promise<void> =>
 
 type GetAllInputLinesParams = {
     fileLocation: string
+    disableFilter?: boolean
 }
 
 export const getAllInputLines = (params: GetAllInputLinesParams): string[] => {
     const {
         fileLocation,
+        disableFilter,
     } = params
-    return fs.readFileSync(fileLocation).toString().split('\n').filter(Boolean)
+    return fs.readFileSync(fileLocation)
+        .toString()
+        .split('\n')
+        .filter(item => disableFilter || item)
 }

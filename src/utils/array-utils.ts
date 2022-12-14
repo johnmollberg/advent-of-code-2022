@@ -24,6 +24,17 @@ export const initializeArray: InitializeArray = (params) => {
 
 export const sumArray = (arr: number[]): number => arr.reduce((a, b) => a + b, 0)
 
+export const getStringArrayInChunks = (arr: string[], separatorItem: string = ''): string[][] => {
+    const chunks: string[][] = [[]]
+    arr.forEach(item => {
+        if (item === separatorItem) {
+            return chunks.push([])
+        }
+        chunks[chunks.length - 1].push(item)
+    })
+    return chunks.filter(chunk => chunk.length)
+}
+
 export const removeItemFromArray = <T extends Primitive>(
     arr: T[],
     item: T,
