@@ -1,5 +1,5 @@
 import {getAllInputLines} from '../utils/io-utils'
-import {initializeArray} from "../utils/array-utils";
+import {initializeArray, transpose2dMatrix} from "../utils/array-utils";
 
 const sandHoleY = 0
 const sandHoleX = 500
@@ -18,7 +18,7 @@ const getMinsAndMaxes = (rockCoordinates: number[][][]) => {
     }
 }
 
-const getInitializedMap = (rockCoordinates: number[][][]) => {
+const getInitializedMap = (rockCoordinates: number[][][], isPart2: boolean) => {
     const {
         minX,
         maxX,
@@ -68,6 +68,37 @@ const getInitializedMap = (rockCoordinates: number[][][]) => {
         })
     })
 
+    if (isPart2) {
+        const extraSize = 300
+        return [
+            ...transpose2dMatrix([
+                ...initializeArray({
+                    length: extraSize,
+                    defaultValue: initializeArray({
+                        length: map.length,
+                        defaultValue: '.',
+                    }),
+                }),
+                ...transpose2dMatrix(map),
+                ...initializeArray({
+                    length: extraSize,
+                    defaultValue: initializeArray({
+                        length: map.length,
+                        defaultValue: '.',
+                    }),
+                }),
+            ]),
+            initializeArray({
+                length: extraSize + map.length + extraSize,
+                defaultValue: '.',
+            }),
+            initializeArray({
+                length: extraSize + map.length + extraSize,
+                defaultValue: '#',
+            }),
+        ]
+    }
+
     return map
 }
 
@@ -86,7 +117,9 @@ const getXshift = (map: string[][], currentSandX: number, currentSandY: number):
 
 const dropSand = (map: string[][]): boolean => {
     let currentSandX = map[0].indexOf('+')
-    let currentSandY = 1
+    let currentSandY = 0
+
+    const prevMap = JSON.stringify(map)
 
     let xShift = getXshift(map, currentSandX, currentSandY)
     while (typeof xShift !== 'undefined') {
@@ -102,31 +135,34 @@ const dropSand = (map: string[][]): boolean => {
         xShift = getXshift(map, currentSandX, currentSandY)
     }
     map[currentSandY][currentSandX] = 'o'
-    return false
+    return prevMap === JSON.stringify(map)
+
 }
 
-export const runDay14 = async () => {
+const getResult = (isPart2: boolean) => {
     const rockCoordinates = getAllInputLines({
         fileLocation: 'input.txt',
     }).map(line => line.split('->').map(instruction => instruction.trim().split(',').map(coord => parseInt(coord))))
 
-    const map = getInitializedMap(rockCoordinates)
+    const map = getInitializedMap(rockCoordinates, isPart2)
 
     let isDone = false
-    let part1 = 0
+    let result = 0
     while (!isDone) {
         isDone = dropSand(map)
-        part1++
-        console.log(`dropped ${part1} pieces\n`)
+        result++
     }
-    part1--
+    result--
 
     for (const row of map) {
         console.log(row.join(''))
     }
+    return result
+}
 
+export const runDay14 = async () => {
     console.log({
-        part1,
-        // part2: sumArray(someArray),
+        part1: getResult(false),
+        part2: getResult(true),
     })
 }
