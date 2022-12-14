@@ -75,10 +75,10 @@ const getXshift = (map: string[][], currentSandX: number, currentSandY: number):
     if (map[currentSandY + 1][currentSandX] === '.') {
         return 0
     }
-    if (['.', undefined].includes(map[currentSandY + 1][currentSandX - 1])) {
+    if (currentSandX - 1 < 0 || map[currentSandY + 1][currentSandX - 1] === '.') {
         return -1
     }
-    if (['.', undefined].includes(map[currentSandY + 1][currentSandX + 1])) {
+    if (currentSandX + 1 >= map[0].length || map[currentSandY + 1][currentSandX + 1] === '.') {
         return 1
     }
     return undefined
@@ -92,11 +92,14 @@ const dropSand = (map: string[][]): boolean => {
     while (typeof xShift !== 'undefined') {
         currentSandY++
         currentSandX += xShift
-        try {
-            xShift = getXshift(map, currentSandX, currentSandY)
-        } catch (e) {
+        if (
+            currentSandX < 0 ||
+            currentSandX > map[0].length ||
+            currentSandY + 1 > map.length - 1
+        ) {
             return true
         }
+        xShift = getXshift(map, currentSandX, currentSandY)
     }
     map[currentSandY][currentSandX] = 'o'
     return false
