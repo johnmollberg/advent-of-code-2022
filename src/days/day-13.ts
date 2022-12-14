@@ -42,8 +42,7 @@ enum ComparisonResult {
 const getComparisonResult = (left: Item | undefined, right: Item | undefined): ComparisonResult => {
     if (typeof left === 'undefined') {
         if (typeof right === 'undefined') {
-            console.log('THE IMPOSSIBLE HAS HAPPENED')
-            return ComparisonResult.equal
+            throw new Error('THE IMPOSSIBLE HAS HAPPENED')
         }
         return ComparisonResult.inOrder
     }
@@ -77,6 +76,15 @@ const getComparisonResult = (left: Item | undefined, right: Item | undefined): C
     return getComparisonResult(left, [right])
 }
 
+const getPart2Target = (sortedItems: Item[], target: number) =>
+    sortedItems.findIndex(item =>
+        typeof item === 'object' &&
+        item.length === 1 &&
+        typeof item[0] === 'object' &&
+        item[0].length === 1 &&
+        item[0][0] === target
+    ) + 1
+
 export const runDay13 = async () => {
     const pairs = getStringArrayInChunks(getAllInputLines({
         fileLocation: 'input.txt',
@@ -91,9 +99,32 @@ export const runDay13 = async () => {
             return sum
         }, 0)
 
+    const allSorted = [
+        ...pairs.flat(),
+        [[2]],
+        [[6]],
+    ].sort((a, b) => {
+        const result = getComparisonResult(a, b)
+        switch (result) {
+            case ComparisonResult.inOrder: {
+                return -1
+            }
+            case ComparisonResult.outOfOrder: {
+                return 1
+            }
+            case ComparisonResult.equal: {
+                return 0
+            }
+        }
+    })
+
+    const firstTarget = getPart2Target(allSorted, 2)
+    const secondTarget = getPart2Target(allSorted, 6)
+
+    const part2 = firstTarget * secondTarget
 
     console.log({
         part1,
-        // part2: sumArray(someArray),
+        part2,
     })
 }
